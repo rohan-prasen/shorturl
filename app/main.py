@@ -1,1 +1,2 @@
-print("Hello World from, `shorturl`")
+def main():
+    print("Hello World from `shorturl`")
