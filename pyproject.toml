@@ -27,3 +27,8 @@ packages = ["app"]
 [tool.uv.build-backend]
 module-root = ""
 module-name = "app"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+]

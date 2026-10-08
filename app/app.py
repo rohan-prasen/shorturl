@@ -77,3 +77,31 @@ def shorten_url():
     return jsonify(
         {"short_url": f"http://localhost:5000/{short_code}", "short_code": short_code}
     ), 201
+
+
+@app.route("/<short_code>")
+def redirect_url(short_code):
+    # Check the fast cache first
+    long_url = cache.get(short_code)
+
+    if long_url:
+        print("CACHE HIT", flush=True)
+        return redirect(long_url, code=302)
+
+    # Cache miss - fall back to the database
+    print("CACHE MISS - querying database", flush=True)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT long_url FROM urls WHERE id = %s", (base62_decode(short_code),))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not result:
+        return jsonify({"error": "Short URL not found"}), 404
+
+    # Found it in the database - cache it for next time
+    long_url = result[0]
+    cache.set(short_code, long_url)
+
+    return redirect(long_url, code=302)
