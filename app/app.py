@@ -8,7 +8,7 @@ from flask import Flask, jsonify, redirect, request
 
 load_dotenv()
 
-web_port = int(os.getenv("WEB_PORT"))
+web_port = int(os.getenv("WEB_PORT", "5000"))
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
 # Connect to redis for faster lookups
 cache = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"),
-    port=int(os.getenv("REDIST_PORT", "6379")),
+    port=int(os.getenv("REDIS_PORT", "6379")),
     decode_responses=True,
 )
 

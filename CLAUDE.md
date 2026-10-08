@@ -35,12 +35,10 @@ Single module, `app/app.py`, holds the whole web app:
 
 All config comes from environment variables (loaded via `python-dotenv` from `.env`). `.env.example` lists the keys; `.env` is gitignored. `compose.yml` passes these through to the containers.
 
-- `WEB_PORT` is **required and has no fallback** — `int(os.getenv("WEB_PORT"))` raises at import time if unset, so the app will not start without it.
-- Postgres and Redis connection vars (`POSTGRES_HOST`/`DB`/`USER`/`PASSWORD`, `REDIS_HOST`) have in-code defaults matching the compose service names (`db`, `redis`).
+- `WEB_PORT` defaults to `5000` (`int(os.getenv("WEB_PORT", "5000"))`), so the app starts even if it is unset.
+- Postgres and Redis connection vars (`POSTGRES_HOST`/`DB`/`USER`/`PASSWORD`, `REDIS_HOST`, `REDIS_PORT`) have in-code defaults matching the compose service names (`db`, `redis`, port `6379`).
 
 ## Gotchas
 
-- `app/app.py` reads the Redis port from `REDIST_PORT` (typo), not `REDIS_PORT`, so the `REDIS_PORT` env var is ignored and the port falls back to `6379`.
-- `compose.yml` references `docker/Dockerfile` but the file on disk is `docker/dockerfile` (lowercase). Works on case-insensitive macOS; breaks a case-sensitive Linux build.
 - The `urls` table column is `create_at` (missing `d`) in `app/init.sql`.
 - `init.sql` runs only when the Postgres volume is empty — after a schema change, recreate the volume (`docker compose down -v`) for it to re-run.

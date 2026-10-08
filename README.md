@@ -38,7 +38,7 @@ app/
   init.sql        Creates the `urls` table; PostgreSQL runs it on first startup
   __init__.py     Package metadata and a stub console-script entry point (not the web server)
 docker/
-  dockerfile      Builds the web service image
+  Dockerfile      Builds the web service image
 compose.yml       Defines the web, db, and redis services and wires them together
 pyproject.toml    Project metadata, dependencies, and dev tool config
 uv.lock           The locked dependency set; the source of truth for installs
@@ -57,7 +57,7 @@ cp .env.example .env
 
 The variables are:
 
-- `WEB_PORT` is the port the Flask app listens on. It is required and has no default. If it is missing the app fails to start, so always set it.
+- `WEB_PORT` is the port the Flask app listens on. It defaults to `5000` if unset, but set it so the published Docker port and the app agree.
 - `REDIS_HOST` is the Redis hostname.
 - `REDIS_PORT` is the Redis port.
 - `POSTGRES_HOST` is the PostgreSQL hostname.
@@ -184,9 +184,7 @@ uv run pytest
 
 A few things in the current code are worth knowing before they confuse you:
 
-- The Redis port is read from an environment variable named `REDIST_PORT`, which has a typo. Because `REDIS_PORT` is never read for the port, the client falls back to the default `6379`. If you need a non-default Redis port, be aware of this when debugging.
-- `compose.yml` points at `docker/Dockerfile` with a capital D, but the file on disk is `docker/dockerfile` in lowercase. This works on case-insensitive filesystems such as default macOS, but a case-sensitive Linux host will fail to find the file during the build.
 - The timestamp column in `app/init.sql` is named `create_at`, missing the `d` from `created_at`.
 - `init.sql` only runs when the PostgreSQL data volume is empty. If you change the schema, you need to recreate the volume with `docker compose down -v` for the new SQL to take effect.
 
-If the web service starts and immediately exits, the most common cause is a missing `WEB_PORT`, since the app reads it with no fallback. Check your `.env` first.
+If a redirect returns the wrong page or a 404 you did not expect, check the web service logs for `CACHE HIT` versus `CACHE MISS - querying database` to see whether Redis or PostgreSQL served the lookup.
