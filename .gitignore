@@ -15,3 +15,6 @@ wheels/
 .env
 .env.*
 !.env.example
+
+# System generated files
+.DS_Store
