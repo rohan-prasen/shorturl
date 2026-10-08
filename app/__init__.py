@@ -1,4 +1,5 @@
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
 
 
 def main() -> None:
@@ -6,6 +7,6 @@ def main() -> None:
 
 
 try:
-    __version__ = version("shorturl")
+    __version__ = _version("shorturl")
 except PackageNotFoundError:
     __version__ = "unknown"
