@@ -10,3 +10,8 @@ wheels/
 .venv
 .claude-flow
 .claude/
+
+# Secrets
+.env
+.env.*
+!.env.example
