@@ -48,3 +48,32 @@ def base62_decode(code):
     for char in code:
         num = num * 62 + ALPHABET.index(char)
     return num
+
+
+@app.route("/shorten", methods=["POST"])
+def shorten_url():
+    # Grab the long URL from the request body
+    data = request.get_json()
+    if not data or "url" not in data:
+        return jsonify({"error": "Missing url field"}), 400
+
+    long_url = data["url"]
+
+    # Save to PostgreSQL - the database assigns an auto-incrementing ID
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO urls (long_url) VALUES (%s) RETURNING id", (long_url,))
+    url_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    # Encode the database ID into a short code
+    short_code = base62_encode(url_id)
+
+    # Cache the mapping for fast redirects later
+    cache.set(short_code, long_url)
+
+    return jsonify(
+        {"short_url": f"http://localhost:5000/{short_code}", "short_code": short_code}
+    ), 201
