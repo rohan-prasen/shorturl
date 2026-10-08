@@ -8,6 +8,8 @@ from flask import Flask, jsonify, redirect, request
 
 load_dotenv()
 
+web_port = int(os.getenv("WEB_PORT"))
+
 app = Flask(__name__)
 
 # Defining all the alphanumeric set of elements
@@ -76,7 +78,7 @@ def shorten_url():
 
     return jsonify(
         {
-            "short_url": f"http://localhost:{int(os.getenv('WEB_PORT'))}/{short_code}",
+            "short_url": f"http://localhost:{web_port}/{short_code}",
             "short_code": short_code,
         }
     ), 201
@@ -117,4 +119,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("WEB_PORT", "5000")))
+    app.run(host="0.0.0.0", port=web_port)
