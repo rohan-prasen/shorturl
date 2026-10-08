@@ -7,7 +7,11 @@ authors = [
     { name = "Rohan Prasen Kedari", email = "rohanprasenkedari@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "flask>=3.1.3",
+    "psycopg2-binary>=2.9.13",
+    "redis>=8.1.0",
+]
 
 [project.scripts]
 shorturl = "app.main:main"
