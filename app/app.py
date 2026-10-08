@@ -16,7 +16,7 @@ ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
 # Connect to redis for faster lookups
 cache = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"),
-    port=int(os.getenv("REDIST_PORT", 6379)),
+    port=int(os.getenv("REDIST_PORT", "6379")),
     decode_responses=True,
 )
 
@@ -105,3 +105,13 @@ def redirect_url(short_code):
     cache.set(short_code, long_url)
 
     return redirect(long_url, code=302)
+
+
+@app.route("/health")
+def health():
+    """Simple endpoint to check whether the server is running."""
+    return jsonify({"status": "healthy"}), 200
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.getenv("WEB_PORT", "5000")))
