@@ -75,7 +75,10 @@ def shorten_url():
     cache.set(short_code, long_url)
 
     return jsonify(
-        {"short_url": f"http://localhost:5000/{short_code}", "short_code": short_code}
+        {
+            "short_url": f"http://localhost:{int(os.getenv('WEB_PORT'))}/{short_code}",
+            "short_code": short_code,
+        }
     ), 201
 
 
