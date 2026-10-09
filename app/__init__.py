@@ -3,7 +3,9 @@ from importlib.metadata import version as _version
 
 
 def main() -> None:
-    print("Hello from shorturl!")
+    print(
+        f"Hello from shorturl! You are currently on the version, `{_version('shorturl')}`"
+    )
 
 
 try:
