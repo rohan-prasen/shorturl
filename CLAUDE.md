@@ -40,5 +40,4 @@ All config comes from environment variables (loaded via `python-dotenv` from `.e
 
 ## Gotchas
 
-- The `urls` table column is `create_at` (missing `d`) in `app/init.sql`.
 - `init.sql` runs only when the Postgres volume is empty — after a schema change, recreate the volume (`docker compose down -v`) for it to re-run.

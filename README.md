@@ -86,9 +86,9 @@ This is the fastest way to get a working stack because it starts the web app, Po
 1. Create your `.env` file as shown above.
 2. Build the images and start everything:
 
-   ```bash
-   docker compose up --build
-   ```
+    ```bash
+    docker compose up --build
+    ```
 
 3. Compose waits for PostgreSQL and Redis to report healthy before it starts the web service. On first startup, PostgreSQL runs `app/init.sql`, which creates the `urls` table. The database files live in a named volume called `postgres_data`, so your data survives restarts.
 4. The app is now reachable on the port you set in `WEB_PORT`, for example `http://localhost:8000`.
@@ -101,25 +101,25 @@ Use this path when you want to run and debug the Flask app on your machine. You 
 
 1. Install the dependencies. This creates a `.venv` and installs everything from the lock file:
 
-   ```bash
-   uv sync
-   ```
+    ```bash
+    uv sync
+    ```
 
 2. Make sure PostgreSQL and Redis are running and that your `.env` points at them. If you have not created the `urls` table yet, load the schema into your database:
 
-   ```bash
-   psql "$DATABASE_URL" -f app/init.sql
-   ```
+    ```bash
+    psql "$DATABASE_URL" -f app/init.sql
+    ```
 
-   Replace the connection string with whatever your database needs, or run the SQL through your usual client.
+    Replace the connection string with whatever your database needs, or run the SQL through your usual client.
 
 3. Start the app:
 
-   ```bash
-   uv run python app/app.py
-   ```
+    ```bash
+    uv run python app/app.py
+    ```
 
-   The app binds to `0.0.0.0` on your `WEB_PORT`, so it is reachable at `http://localhost:<WEB_PORT>`.
+    The app binds to `0.0.0.0` on your `WEB_PORT`, so it is reachable at `http://localhost:<WEB_PORT>`.
 
 Note: the `shorturl` command defined in `pyproject.toml` is only a placeholder that prints a greeting. It does not start the web server. Always run the app through `app/app.py`.
 
@@ -137,8 +137,8 @@ You get back the short code and the full short URL:
 
 ```json
 {
-  "short_url": "http://localhost:8000/1",
-  "short_code": "1"
+    "short_url": "http://localhost:8000/1",
+    "short_code": "1"
 }
 ```
 
@@ -184,7 +184,6 @@ uv run pytest
 
 A few things in the current code are worth knowing before they confuse you:
 
-- The timestamp column in `app/init.sql` is named `create_at`, missing the `d` from `created_at`.
 - `init.sql` only runs when the PostgreSQL data volume is empty. If you change the schema, you need to recreate the volume with `docker compose down -v` for the new SQL to take effect.
 
 If a redirect returns the wrong page or a 404 you did not expect, check the web service logs for `CACHE HIT` versus `CACHE MISS - querying database` to see whether Redis or PostgreSQL served the lookup.
