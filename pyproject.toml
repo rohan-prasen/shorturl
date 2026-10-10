@@ -1,6 +1,6 @@
 [project]
 name = "shorturl"
-version = "1.1.0"
+version = "2.0.0.dev1"
 description = "A python application which converts long urls to short urls"
 readme = "README.md"
 authors = [
