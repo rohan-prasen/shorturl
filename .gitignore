@@ -18,3 +18,5 @@ wheels/
 
 # System generated files
 .DS_Store
+ruvector.db
+.swarm/

@@ -1,17 +1,19 @@
 import os
 import string
-from functools import wraps
 
 import psycopg2
 import redis
+import uvicorn
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, request
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import BaseModel
 
 load_dotenv()
 
 web_port = int(os.getenv("WEB_PORT", "5000"))
 
-app = Flask(__name__)
+app = FastAPI()
 
 # Defining all the alphanumeric set of elements
 ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase
@@ -22,6 +24,10 @@ cache = redis.Redis(
     port=int(os.getenv("REDIS_PORT", "6379")),
     decode_responses=True,
 )
+
+
+class ShortenRequest(BaseModel):
+    url: str
 
 
 def get_db():
@@ -53,39 +59,38 @@ def base62_decode(code):
     return num
 
 
-def rate_limit(max_requests=10, window=60):
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            # Get the client's IP address
-            client_ip = request.remote_addr
-            # Create a unique Redis key for this IP
-            key = f"rate_limit:{client_ip}"
-            # Check current request count
-            current = cache.get(key)
-            if current and int(current) >= max_requests:
-                return jsonify({"error": "Rate limit exceeded. Try again later."}), 429
-            # Increment counter and set expiration atomically
-            pipe = cache.pipeline()
-            pipe.incr(key)
-            pipe.expire(key, window)
-            pipe.execute()
-            return f(*args, **kwargs)
-
-        return decorated_function
-
-    return decorator
+def rate_limit(request: Request, max_requests=10, window=60):
+    """Limit each client IP to max_requests per window seconds via Redis."""
+    # Get the client's IP address
+    client_ip = request.client.host if request.client else "unknown"
+    # Create a unique Redis key for this IP
+    key = f"rate_limit:{client_ip}"
+    # Check current request count
+    current = cache.get(key)
+    if current and int(current) >= max_requests:
+        return JSONResponse(
+            {"error": "Rate limit exceeded. Try again later."}, status_code=429
+        )
+    # Increment counter and set expiration atomically
+    pipe = cache.pipeline()
+    pipe.incr(key)
+    pipe.expire(key, window)
+    pipe.execute()
+    return None
 
 
-@app.route("/shorten", methods=["POST"])
-@rate_limit(max_requests=10, window=60)
-def shorten_url():
+@app.post("/shorten")
+def shorten_url(body: ShortenRequest, request: Request):
+    # Enforce the per-IP rate limit before doing any work
+    limited = rate_limit(request, max_requests=10, window=60)
+    if limited is not None:
+        return limited
+
     # Grab the long URL from the request body
-    data = request.get_json()
-    if not data or "url" not in data:
-        return jsonify({"error": "Missing url field"}), 400
+    if not body.url:
+        return JSONResponse({"error": "Missing url field"}, status_code=400)
 
-    long_url = data["url"]
+    long_url = body.url
 
     # Save to PostgreSQL - the database assigns an auto-incrementing ID
     conn = get_db()
@@ -102,22 +107,29 @@ def shorten_url():
     # Cache the mapping for fast redirects later
     cache.set(short_code, long_url)
 
-    return jsonify(
+    return JSONResponse(
         {
             "short_url": f"http://localhost:{web_port}/{short_code}",
             "short_code": short_code,
-        }
-    ), 201
+        },
+        status_code=201,
+    )
 
 
-@app.route("/<short_code>")
-def redirect_url(short_code):
+@app.get("/health")
+def health():
+    """Simple endpoint to check whether the server is running."""
+    return {"status": "healthy"}
+
+
+@app.get("/{short_code}")
+def redirect_url(short_code: str):
     # Check the fast cache first
     long_url = cache.get(short_code)
 
     if long_url:
         print("CACHE HIT", flush=True)
-        return redirect(long_url, code=302)
+        return RedirectResponse(long_url, status_code=302)
 
     # Cache miss - fall back to the database
     print("CACHE MISS - querying database", flush=True)
@@ -129,20 +141,14 @@ def redirect_url(short_code):
     conn.close()
 
     if not result:
-        return jsonify({"error": "Short URL not found"}), 404
+        return JSONResponse({"error": "Short URL not found"}, status_code=404)
 
     # Found it in the database - cache it for next time
     long_url = result[0]
     cache.set(short_code, long_url)
 
-    return redirect(long_url, code=302)
-
-
-@app.route("/health")
-def health():
-    """Simple endpoint to check whether the server is running."""
-    return jsonify({"status": "healthy"}), 200
+    return RedirectResponse(long_url, status_code=302)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=web_port)
+    uvicorn.run(app, host="0.0.0.0", port=web_port)

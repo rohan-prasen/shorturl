@@ -6,6 +6,7 @@ services:
         ports:
             - "${WEB_PORT}:${WEB_PORT}"
         environment:
+            - WEB_PORT=${WEB_PORT}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_PORT=${REDIS_PORT}
             - POSTGRES_HOST=${POSTGRES_HOST}
