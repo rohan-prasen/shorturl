@@ -1,6 +1,6 @@
 # ShortURL
 
-A small URL shortener built with Flask. You send it a long URL, it stores the URL in PostgreSQL, and it hands back a short code. When someone visits the short code, the service looks the code up and redirects them to the original URL. Redis sits in front of the database as a cache so repeat visits do not hit PostgreSQL every time.
+A small URL shortener built with FastAPI. You send it a long URL, it stores the URL in PostgreSQL, and it hands back a short code. When someone visits the short code, the service looks the code up and redirects them to the original URL. Redis sits in front of the database as a cache so repeat visits do not hit PostgreSQL every time.
 
 This README walks a first-time visitor through the whole development setup: what the pieces are, how to configure them, and how to get the app running either with Docker or directly on your machine.
 
@@ -14,7 +14,7 @@ There are three endpoints:
 - `GET /<short_code>` looks up the code and sends a 302 redirect to the original URL. It checks Redis first and only falls back to PostgreSQL on a cache miss, then writes the result back into Redis.
 - `GET /health` returns a small JSON object so you can check the server is up.
 
-Three processes run together: the Flask web app, a PostgreSQL database for permanent storage, and a Redis instance for caching. The Docker Compose setup starts all three for you.
+Three processes run together: the FastAPI web app, a PostgreSQL database for permanent storage, and a Redis instance for caching. The Docker Compose setup starts all three for you.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ For the Docker path (recommended, nothing to install locally except Docker):
 
 - Docker and Docker Compose.
 
-For the local path (run the Flask app on your machine, with the databases either local or in Docker):
+For the local path (run the FastAPI app on your machine, with the databases either local or in Docker):
 
 - Python 3.12 or newer. The pinned version lives in `.python-version`.
 - [uv](https://docs.astral.sh/uv/) for dependency management.
@@ -34,7 +34,7 @@ For the local path (run the Flask app on your machine, with the databases either
 
 ```
 app/
-  app.py          The whole Flask application: routes, base62 encode/decode, DB and cache clients
+  app.py          The whole FastAPI application: routes, base62 encode/decode, DB and cache clients
   init.sql        Creates the `urls` table; PostgreSQL runs it on first startup
   __init__.py     Package metadata and a stub console-script entry point (not the web server)
 docker/
@@ -57,7 +57,7 @@ cp .env.example .env
 
 The variables are:
 
-- `WEB_PORT` is the port the Flask app listens on. It defaults to `5000` if unset, but set it so the published Docker port and the app agree.
+- `WEB_PORT` is the port the FastAPI app listens on. It defaults to `5000` if unset, but set it so the published Docker port and the app agree.
 - `REDIS_HOST` is the Redis hostname.
 - `REDIS_PORT` is the Redis port.
 - `POSTGRES_HOST` is the PostgreSQL hostname.
@@ -77,7 +77,7 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 ```
 
-When you run the Flask app directly on your machine, point the hosts at wherever your databases actually live, usually `localhost`.
+When you run the FastAPI app directly on your machine, point the hosts at wherever your databases actually live, usually `localhost`.
 
 ## Running with Docker (recommended)
 
@@ -97,7 +97,7 @@ To stop the stack, press Ctrl+C, or run `docker compose down`. To stop it and al
 
 ## Running locally without Docker
 
-Use this path when you want to run and debug the Flask app on your machine. You still need PostgreSQL and Redis running somewhere the app can reach. A common setup is to run just the databases in Docker and the app on your host.
+Use this path when you want to run and debug the FastAPI app on your machine. You still need PostgreSQL and Redis running somewhere the app can reach. A common setup is to run just the databases in Docker and the app on your host.
 
 1. Install the dependencies. This creates a `.venv` and installs everything from the lock file:
 

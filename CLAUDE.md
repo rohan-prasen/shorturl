@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-A minimal Flask URL shortener. Short codes are the base62 encoding of a Postgres auto-increment `id`; Redis is a cache-aside layer in front of Postgres for redirect lookups. `AGENTS.md` is a symlink to this file.
+A minimal FastAPI URL shortener. Short codes are the base62 encoding of a Postgres auto-increment `id`; Redis is a cache-aside layer in front of Postgres for redirect lookups. `AGENTS.md` is a symlink to this file.
 
 ## Commands
 
